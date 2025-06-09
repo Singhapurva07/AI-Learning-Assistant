@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Learning Assistant</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .upload-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+
+        .upload-area:hover {
+            border-color: #5a67d8;
+            background: #f0f2ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #4c51bf;
+            background: #e6f3ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .file-types {
+            font-size: 0.9em;
+            color: #999;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .content-section {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 15px 15px 0 0;
+            overflow: hidden;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab-content {
+            padding: 30px;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .summary-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .flashcard {
+            background: #f8f9ff;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            margin: 15px 0;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .flashcard:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .flashcard.flipped {
+            background: #667eea;
+            color: white;
+        }
+
+        .quiz-question {
+            background: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .quiz-option {
+            background: #f8f9ff;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            padding: 12px;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quiz-option:hover {
+            background: #e6f3ff;
+            border-color: #667eea;
+        }
+
+        .quiz-option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .quiz-option.correct {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+
+        .quiz-option.incorrect {
+            background: #ef4444;
+            color: white;
+            border-color: #ef4444;
+        }
+
+        .chat-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .chat-messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #f8f9ff;
+        }
+
+        .chat-message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+
+        .chat-message.user {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .chat-message.bot {
+            background: #e2e8f0;
+            color: #333;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            outline: none;
+            font-size: 1em;
+        }
+
+        .chat-input input:focus {
+            border-color: #667eea;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .upload-area {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-brain"></i> AI Learning Assistant</h1>
+            <p>Transform any document into interactive learning materials</p>
+        </div>
+
+        <div class="upload-section">
+            <h2><i class="fas fa-upload"></i> Upload Your Learning Material</h2>
+            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <div class="upload-text">
+                    Click to upload or drag and drop your file here
+                </div>
+                <div class="file-types">
+                    Supports: PDF, PPT, PPTX, Images (PNG, JPG), Text files<br>
+                    <small style="color: #666;">Maximum file size: 100MB</small>
+                </div>
+            </div>
+            <input type="file" id="fileInput" style="display: none;" accept=".pdf,.ppt,.pptx,.png,.jpg,.jpeg,.gif,.txt">
+            <button class="btn" id="uploadBtn" onclick="uploadFile()" disabled>
+                <i class="fas fa-magic"></i> Generate Learning Content
+            </button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing your content and generating learning materials...</p>
+        </div>
+
+        <div id="alerts"></div>
+
+        <div class="content-section" id="contentSection">
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('summary')">
+                    <i class="fas fa-book-open"></i> Summary
+                </div>
+                <div class="tab" onclick="showTab('flashcards')">
+                    <i class="fas fa-cards-blank"></i> Flashcards
+                </div>
+                <div class="tab" onclick="showTab('quiz')">
+                    <i class="fas fa-question-circle"></i> Quiz
+                </div>
+                <div class="tab" onclick="showTab('topics')">
+                    <i class="fas fa-list"></i> Topics
+                </div>
+            </div>
+
+            <div class="tab-content active" id="summary">
+                <div class="summary-box" id="summaryBox">
+                    <h3><i class="fas fa-lightbulb"></i> Content Summary</h3>
+                    <p id="summaryText">Your summary will appear here...</p>
+                </div>
+                <div id="detailedExplanation">
+                    <h3><i class="fas fa-info-circle"></i> Detailed Explanation</h3>
+                    <p id="explanationText">Detailed explanation will appear here...</p>
+                </div>
+                <button class="btn" onclick="regenerateContent()">
+                    <i class="fas fa-redo"></i> Regenerate Content
+                </button>
+            </div>
+
+            <div class="tab-content" id="flashcards">
+                <h3><i class="fas fa-cards-blank"></i> Interactive Flashcards</h3>
+                <p>Click on any flashcard to reveal the answer</p>
+                <div id="flashcardContainer">
+                    <!-- Flashcards will be generated here -->
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="flashcardProgress" style="width: 0%"></div>
+                </div>
+                <p id="flashcardCounter">0 / 0 cards reviewed</p>
+            </div>
+
+            <div class="tab-content" id="quiz">
+                <h3><i class="fas fa-question-circle"></i> Knowledge Quiz</h3>
+                <p>Test your understanding with these questions</p>
+                <div id="quizContainer">
+                    <!-- Quiz questions will be generated here -->
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="quizProgress" style="width: 0%"></div>
+                </div>
+                <div id="quizResults" style="display: none;">
+                    <h4>Quiz Complete!</h4>
+                    <p id="scoreText"></p>
+                    <button class="btn" onclick="retakeQuiz()">
+                        <i class="fas fa-redo"></i> Retake Quiz
+                    </button>
+                </div>
+            </div>
+
+            <div class="tab-content" id="topics">
+                <h3><i class="fas fa-list"></i> Key Topics & Learning Objectives</h3>
+                <div id="topicsContainer">
+                    <div id="keyTopics">
+                        <h4><i class="fas fa-tags"></i> Key Topics</h4>
+                        <ul id="topicsList"></ul>
+                    </div>
+                    <div id="learningObjectives">
+                        <h4><i class="fas fa-target"></i> Learning Objectives</h4>
+                        <ul id="objectivesList"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-section" id="chatSection" style="display: none;">
+            <h3><i class="fas fa-comments"></i> Ask Questions</h3>
+            <p>Have doubts? Ask me anything about your learning material!</p>
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-message bot">
+                    <strong>AI Tutor:</strong> Hi! I'm here to help you understand your learning material. Feel free to ask me any questions!
+                </div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="Ask a question about your content..." onkeypress="handleChatKeyPress(event)">
+                <button class="btn" onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i> Send
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let learningData = null;
+        let currentQuizAnswers = {};
+        let reviewedFlashcards = new Set();
+
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                const maxSize = 100 * 1024 * 1024; // 100MB in bytes
+                
+                if (file.size > maxSize) {
+                    showAlert('File is too large! Please select a file smaller than 100MB.', 'error');
+                    return;
+                }
+                
+                fileInput.files = files;
+                uploadBtn.disabled = false;
+                const sizeText = file.size > 1024 * 1024 ? 
+                    `${(file.size / (1024 * 1024)).toFixed(1)}MB` : 
+                    `${(file.size / 1024).toFixed(1)}KB`;
+                showAlert(`File selected: ${file.name} (${sizeText})`, 'success');
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                const maxSize = 100 * 1024 * 1024; // 100MB in bytes
+                
+                if (file.size > maxSize) {
+                    showAlert('File is too large! Please select a file smaller than 100MB.', 'error');
+                    e.target.value = ''; // Clear the file input
+                    uploadBtn.disabled = true;
+                    return;
+                }
+                
+                uploadBtn.disabled = false;
+                const sizeText = file.size > 1024 * 1024 ? 
+                    `${(file.size / (1024 * 1024)).toFixed(1)}MB` : 
+                    `${(file.size / 1024).toFixed(1)}KB`;
+                showAlert(`File selected: ${file.name} (${sizeText})`, 'success');
+            }
+        });
+
+        function showAlert(message, type = 'error') {
+            const alertsContainer = document.getElementById('alerts');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-triangle' : 'check-circle'}"></i> ${message}`;
+            alertsContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        async function uploadFile() {
+            const file = fileInput.files[0];
+            if (!file) {
+                showAlert('Please select a file first!');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            document.getElementById('loading').style.display = 'block';
+            uploadBtn.disabled = true;
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    learningData = result.data;
+                    displayLearningContent(learningData);
+                    document.getElementById('contentSection').style.display = 'block';
+                    document.getElementById('chatSection').style.display = 'block';
+                    showAlert('Learning content generated successfully!', 'success');
+                } else {
+                    showAlert(result.error || 'Upload failed');
+                }
+            } catch (error) {
+                showAlert('Network error: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                uploadBtn.disabled = false;
+            }
+        }
+
+        function displayLearningContent(data) {
+            // Display summary
+            document.getElementById('summaryText').textContent = data.summary;
+            document.getElementById('explanationText').textContent = data.detailed_explanation;
+
+            // Display flashcards
+            displayFlashcards(data.flashcards);
+
+            // Display quiz
+            displayQuiz(data.quiz_questions);
+
+            // Display topics
+            displayTopics(data.key_topics, data.learning_objectives);
+        }
+
+        function displayFlashcards(flashcards) {
+            const container = document.getElementById('flashcardContainer');
+            container.innerHTML = '';
+            
+            flashcards.forEach((card, index) => {
+                const flashcardDiv = document.createElement('div');
+                flashcardDiv.className = 'flashcard';
+                flashcardDiv.innerHTML = `
+                    <div class="flashcard-front">
+                        <strong>Question ${index + 1}:</strong><br>
+                        ${card.front}
+                    </div>
+                    <div class="flashcard-back" style="display: none;">
+                        <strong>Answer:</strong><br>
+                        ${card.back}
+                    </div>
+                `;
+                
+                flashcardDiv.onclick = () => toggleFlashcard(flashcardDiv, index);
+                container.appendChild(flashcardDiv);
+            });
+            
+            updateFlashcardProgress();
+        }
+
+        function toggleFlashcard(element, index) {
+            const front = element.querySelector('.flashcard-front');
+            const back = element.querySelector('.flashcard-back');
+            
+            if (front.style.display !== 'none') {
+                front.style.display = 'none';
+                back.style.display = 'block';
+                element.classList.add('flipped');
+                reviewedFlashcards.add(index);
+                updateFlashcardProgress();
+            } else {
+                front.style.display = 'block';
+                back.style.display = 'none';
+                element.classList.remove('flipped');
+            }
+        }
+
+        function updateFlashcardProgress() {
+            const total = learningData ? learningData.flashcards.length : 0;
+            const reviewed = reviewedFlashcards.size;
+            const percentage = total > 0 ? (reviewed / total) * 100 : 0;
+            
+            document.getElementById('flashcardProgress').style.width = percentage + '%';
+            document.getElementById('flashcardCounter').textContent = `${reviewed} / ${total} cards reviewed`;
+        }
+
+        function displayQuiz(questions) {
+            const container = document.getElementById('quizContainer');
+            container.innerHTML = '';
+            currentQuizAnswers = {};
+            
+            questions.forEach((question, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'quiz-question';
+                questionDiv.innerHTML = `
+                    <h4>Question ${index + 1}:</h4>
+                    <p>${question.question}</p>
+                    <div class="quiz-options">
+                        ${question.options.map((option, optIndex) => `
+                            <div class="quiz-option" onclick="selectAnswer(${index}, '${option.charAt(0)}', this)">
+                                ${option}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="quiz-explanation" id="explanation-${index}" style="display: none; margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 5px;">
+                        <strong>Explanation:</strong> ${question.explanation}
+                    </div>
+                `;
+                container.appendChild(questionDiv);
+            });
+            
+            const submitBtn = document.createElement('button');
+            submitBtn.className = 'btn';
+            submitBtn.innerHTML = '<i class="fas fa-check"></i> Submit Quiz';
+            submitBtn.onclick = submitQuiz;
+            container.appendChild(submitBtn);
+        }
+
+        function selectAnswer(questionIndex, answer, element) {
+            // Remove previous selection for this question
+            const questionDiv = element.parentElement;
+            questionDiv.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Add selection to clicked option
+            element.classList.add('selected');
+            currentQuizAnswers[questionIndex] = answer;
+            
+            updateQuizProgress();
+        }
+
+        function updateQuizProgress() {
+            const total = learningData ? learningData.quiz_questions.length : 0;
+            const answered = Object.keys(currentQuizAnswers).length;
+            const percentage = total > 0 ? (answered / total) * 100 : 0;
+            
+            document.getElementById('quizProgress').style.width = percentage + '%';
+        }
+
+        function submitQuiz() {
+            let correct = 0;
+            const total = learningData.quiz_questions.length;
+            
+            learningData.quiz_questions.forEach((question, index) => {
+                const userAnswer = currentQuizAnswers[index];
+                const correctAnswer = question.correct_answer;
+                const isCorrect = userAnswer === correctAnswer;
+                
+                if (isCorrect) correct++;
+                
+                // Show visual feedback
+                const questionDiv = document.querySelectorAll('.quiz-question')[index];
+                const options = questionDiv.querySelectorAll('.quiz-option');
+                
+                options.forEach(option => {
+                    const optionLetter = option.textContent.charAt(0);
+                    if (optionLetter === correctAnswer) {
+                        option.classList.add('correct');
+                    } else if (optionLetter === userAnswer && !isCorrect) {
+                        option.classList.add('incorrect');
+                    }
+                });
+                
+                // Show explanation
+                document.getElementById(`explanation-${index}`).style.display = 'block';
+            });
+            
+            // Show results
+            const resultsDiv = document.getElementById('quizResults');
+            const scoreText = document.getElementById('scoreText');
+            const percentage = Math.round((correct / total) * 100);
+            
+            scoreText.innerHTML = `
+                You scored ${correct} out of ${total} questions correctly (${percentage}%)
+                <br>
+                ${percentage >= 80 ? '🎉 Excellent work!' : 
+                  percentage >= 60 ? '👍 Good job!' : 
+                  '📚 Keep studying - you can do better!'}
+            `;
+            
+            resultsDiv.style.display = 'block';
+            
+            // Update progress bar to 100%
+            document.getElementById('quizProgress').style.width = '100%';
+        }
+
+        function retakeQuiz() {
+            currentQuizAnswers = {};
+            reviewedFlashcards.clear();
+            document.getElementById('quizResults').style.display = 'none';
+            displayQuiz(learningData.quiz_questions);
+            updateQuizProgress();
+            updateFlashcardProgress();
+        }
+
+        function displayTopics(topics, objectives) {
+            const topicsList = document.getElementById('topicsList');
+            const objectivesList = document.getElementById('objectivesList');
+            
+            topicsList.innerHTML = '';
+            objectivesList.innerHTML = '';
+            
+            topics.forEach(topic => {
+                const li = document.createElement('li');
+                li.innerHTML = `<i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i>${topic}`;
+                li.style.padding = '8px 0';
+                topicsList.appendChild(li);
+            });
+            
+            objectives.forEach(objective => {
+                const li = document.createElement('li');
+                li.innerHTML = `<i class="fas fa-bullseye" style="color: #667eea; margin-right: 8px;"></i>${objective}`;
+                li.style.padding = '8px 0';
+                objectivesList.appendChild(li);
+            });
+        }
+
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        async function regenerateContent() {
+            if (!learningData) {
+                showAlert('No content to regenerate. Please upload a file first.');
+                return;
+            }
+            
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                const response = await fetch('/regenerate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    learningData = result.data;
+                    displayLearningContent(learningData);
+                    showAlert('Content regenerated successfully!', 'success');
+                    
+                    // Reset progress
+                    currentQuizAnswers = {};
+                    reviewedFlashcards.clear();
+                    updateFlashcardProgress();
+                    updateQuizProgress();
+                } else {
+                    showAlert(result.error || 'Regeneration failed');
+                }
+            } catch (error) {
+                showAlert('Network error: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // Chat functionality
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message to chat
+            addChatMessage(message, 'user');
+            input.value = '';
+            
+            // Show typing indicator
+            const typingDiv = addChatMessage('Thinking...', 'bot');
+            typingDiv.style.opacity = '0.6';
+            
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question: message })
+                });
+                
+                const result = await response.json();
+                
+                // Remove typing indicator
+                typingDiv.remove();
+                
+                if (result.success) {
+                    addChatMessage(result.response, 'bot');
+                } else {
+                    addChatMessage('Sorry, I encountered an error: ' + result.error, 'bot');
+                }
+            } catch (error) {
+                typingDiv.remove();
+                addChatMessage('Sorry, I encountered a network error. Please try again.', 'bot');
+            }
+            
+            // Scroll to bottom
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addChatMessage(message, sender) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${sender}`;
+            
+            if (sender === 'user') {
+                messageDiv.innerHTML = `<strong>You:</strong> ${message}`;
+            } else {
+                messageDiv.innerHTML = `<strong>AI Tutor:</strong> ${message}`;
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            return messageDiv;
+        }
+
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('AI Learning Assistant loaded successfully!');
+        });
+    </script>
+</body>
+</html>
